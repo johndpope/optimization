@@ -5,7 +5,7 @@ import time
 import sys
 from RasterSpace import DiamondSpace
 
-videoPath = "/home/kairat/Desktop/226.mp4"
+videoPath = "./226.mp4"
 
 cap = cv2.VideoCapture(videoPath)
 
@@ -47,9 +47,9 @@ h_c = (height * scale - 1)/2.0
 norm = (max(w_c, h_c) - 14)
 
 ######### initialize DiamondSpace
-diamondSpace_params = dict( Normalization = 1, 
-                            SubPixelRadius = 2, 
-                            margin = 0, 
+diamondSpace_params = dict( Normalization = 1,
+                            SubPixelRadius = 2,
+                            margin = 0,
                             vp = 2)
 
 SpaceSize = int(height * scaleSpaceSize);
@@ -88,7 +88,7 @@ while (cap.isOpened()):
 
                 if lines is None:
                     continue
-                
+
                 lines = np.reshape(lines,(lines.shape[0],2))
                 mxlines = []
 
@@ -106,7 +106,7 @@ while (cap.isOpened()):
 
                     # normalize lines
                     aa = y2 - y1
-                    if aa==0: 
+                    if aa==0:
                         continue
 
                     bb = x1 - x2
@@ -133,7 +133,7 @@ while (cap.isOpened()):
                 k = cv2.waitKey(20)
                 if k == 27:
                     break
-            
+
             framenum += 1
 
         else:

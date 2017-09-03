@@ -1,13 +1,21 @@
-import math
+"""RasterSpace library written on python."""
 import cv2
 import numpy as np
-import time
-import sys
+#clib library_with_useful_functions
 
-class DiamondSpace:
 
-    def __init__(self, spaceSize, height, width, searchRange, Normalization, SubPixelRadius, margin, vp):
-        self.pSpace = np.zeros((spaceSize, spaceSize), dtype = np.uint)
+class DiamondSpace(object):
+
+    def __init__(self,
+                 spaceSize,
+                 height,
+                 width,
+                 searchRange,
+                 Normalization,
+                 SubPixelRadius,
+                 margin,
+                 vp):
+        self.pSpace = np.zeros((spaceSize, spaceSize), dtype=np.uint8)
         self.spaceSize = spaceSize
         self.Normalization = Normalization
         self.SubPixelRadius = SubPixelRadius
@@ -18,44 +26,51 @@ class DiamondSpace:
         self.vp = vp
 
 
-    def getVisSpace(self, drawMax = True, pdd = 2):
+    def getVisSpace(self, drawMax=True, pdd=2):
         maxVal = np.max(self.pSpace)
 
         if maxVal < 1:
-            return np.zeros((self.spaceSize, self.spaceSize), dtype = np.uint8)
+            return np.zeros((self.spaceSize, self.spaceSize), dtype=np.uint8)
 
         visSpace = self.pSpace / float(maxVal) * 255
 
         if drawMax:
-            x, y = self.find_maximum()
-            x = int(round(x))
-            y = int(round(y))
+            raw_x, raw_y = self.find_maximum()
+            x = int(round(raw_x))
+            y = int(round(raw_y))
             visSpace = visSpace.astype(np.uint8)
             visSpace = cv2.cvtColor(visSpace, cv2.COLOR_GRAY2BGR)
-            
+
             if self.vp == 2:
                 # draw top search region
-                cv2.rectangle(visSpace, (int(self.spaceSize/2 - self.searchRange/2), self.margin), 
-                                        (int(self.spaceSize/2 + self.searchRange/2), self.searchRange), (0,255,0))
+                substracted_data = self.spaceSize/2 - self.searchRange/2
+                addicted_data = self.spaceSize/2 + self.searchRange/2
+                cv2.rectangle(visSpace,
+                              (int(substracted_data), self.margin),
+                              (int(addicted_data), self.searchRange),
+                              (0, 255, 0))
 
-                #draw bottom search region
-                cv2.rectangle(visSpace, (int(self.spaceSize/2 - self.searchRange/2), self.spaceSize - self.searchRange), 
-                                        (int(self.spaceSize/2 + self.searchRange/2), self.spaceSize - self.margin - 1), (0,255,0))
+                # draw bottom search region
+                cv2.rectangle(visSpace, (int(substracted_data), self.spaceSize - self.searchRange),
+                                        (int(addicted_data), self.spaceSize - self.margin - 1), (0,255,0))
 
             # draw maximum point
-            cv2.rectangle(visSpace, (x-pdd, y-pdd), (x+pdd, y+pdd), (0,0,255))
+            cv2.rectangle(visSpace, (x-pdd, y-pdd), (x+pdd, y+pdd), (0, 0, 255))
             return visSpace
         else:
             return visSpace.astype(np.uint8)
 
-
     def sgn(self, val):
-        return (0 <= val) - (val < 0)
-
+        if val >= 0:
+            return +1
+        return -1
 
     def sign(self, val):
-        return (0 <= val) - (val <= 0)        
-
+        if val > 0:
+            return +1
+        elif val == 0:
+            return 0
+        return -1
 
     def lines_end_points(self, lines, space_c):
         center = int(round(space_c))
@@ -69,7 +84,7 @@ class DiamondSpace:
             alpha = float(self.sgn(a*b))
             beta = float(self.sgn(b*c))
             gamma = float(self.sgn(a*c))
-            
+
             a_x = alpha*a / (c + gamma*a)
             b_x = -alpha*c / (c + gamma*a)
 
@@ -88,8 +103,6 @@ class DiamondSpace:
             endpoints.append((end0, end1, end2, end3, end4, end5, end6, end7))
 
         return endpoints
-
-
 
     def lineV(self, x0, y0, x1, y1, weight):
         slope = (x1 - x0) / float(y1 - y0)
@@ -128,18 +141,22 @@ class DiamondSpace:
             c += 1
 
 
-
     def rasterize_lines(self, lines, endpoints):
-        for line, end in zip(lines, endpoints):
-            weight = int(line[3])            
+        for line, endpoint in zip(lines, endpoints):
+            weight = int(line[3])
 
-            for i in range(0,6,2):
-                if abs(end[i+3] - end[i+1]) > abs(end[i+2] - end[i]):
-                    self.lineV(end[i], end[i+1], end[i+2], end[i+3], weight)
+            for i in range(0, 6, 2):
+                x1 = endpoint[i]
+                y1 = endpoint[i+1]
+                x2 = endpoint[i+2]
+                y2 = endpoint[i+3]
+                data = (x1, y1, x2, y2, weight)
+                if abs(y2 - y1) > abs(x2 - x1):
+                    self.lineV(*data)
                 else:
-                    self.lineH(end[i], end[i+1], end[i+2], end[i+3], weight)
+                    self.lineH(*data)
 
-            self.pSpace[end[7],end[6]] += weight
+            self.pSpace[endpoint[7], endpoint[6]] += weight
 
 
     def addLines(self, lines):
@@ -149,25 +166,28 @@ class DiamondSpace:
 
         self.rasterize_lines(lines, EndPoints)
 
-
-
     def find_maximum(self):
         R = self.SubPixelRadius
 
         if self.vp == 1:
             dd = 5
             hs = int(self.spaceSize / 2)
-            self.pSpace[(hs-dd):(hs+dd),(hs-dd):(hs+dd)] = 0
+            left = hs-dd
+            right = hs+dd
+            self.pSpace[(left):(right), (left):(right)] = 0
 
             y, x = np.unravel_index(self.pSpace.argmax(), self.pSpace.shape)
             y += 1
             x += 1
         else:
-            topRegion = self.pSpace[self.margin:self.searchRange, 
-                                    int(self.spaceSize/2 - self.searchRange/2):int(self.spaceSize/2 + self.searchRange/2)]
+            substracted2_sizerange = int(self.spaceSize/2 - self.searchRange/2)
+            addicted_sizerange = int(self.spaceSize/2 + self.searchRange/2)
+            sub_sizerange = self.spaceSize - self.searchRange
+            topRegion = self.pSpace[self.margin:self.searchRange,
+                                    substracted2_sizerange:addicted_sizerange]
 
-            bottomRegion = self.pSpace[(self.spaceSize - self.searchRange):(self.spaceSize - self.margin),
-                                       (int(self.spaceSize/2 - self.searchRange/2)):(int(self.spaceSize/2 + self.searchRange/2))]
+            bottomRegion = self.pSpace[(sub_sizerange):(self.spaceSize - self.margin),
+                                       (substracted2_sizerange):(addicted_sizerange)]
 
             maxTop = np.max(topRegion)
             maxBottom = np.max(bottomRegion)
@@ -177,14 +197,12 @@ class DiamondSpace:
                 y += 1
             else:
                 y, x = np.unravel_index(bottomRegion.argmax(), bottomRegion.shape)
-                y += (self.spaceSize - self.searchRange) + 1
+                y += (sub_sizerange) + 1
 
-            x += int(self.spaceSize/2 - self.searchRange/2) + 1
-
-
+            x += substracted2_sizerange + 1
 
         oSize = 2 * self.SubPixelRadius + 1
-        O = np.zeros((oSize, oSize), dtype = np.float)
+        O = np.zeros((oSize, oSize), dtype=np.float)
 
         ist = y - R
         iend = y + R + 1
@@ -197,22 +215,23 @@ class DiamondSpace:
                 if i > 0 and i < self.spaceSize and j > 0 and j < self.spaceSize:
                     O[i - ist, j - jst] = self.pSpace[i, j]
 
-
         sumSR = 0.0
         sumSC = 0.0
         sumO = 0.0
 
         for i in range(-R, R+1):
             for j in range(-R, R+1):
-                sumSR += O[i+R, j+R] * i
-                sumSC += O[i+R, j+R] * j
-                sumO += O[i+R, j+R]
+                left = i+R
+                right = j+R
+                sumSR += O[left, right] * i
+                sumSC += O[left, right] * j
+                sumO += O[left, right]
 
-        return x + sumSC/sumO, y + sumSR/sumO
-
+        return (x + sumSC/sumO, y + sumSR/sumO)
 
     def normalize_PC_points(self, PC_VanP):
-        return (2 * PC_VanP[0] - (self.spaceSize + 1)) / (self.spaceSize - 1), (2 * PC_VanP[1] - (self.spaceSize + 1)) / (self.spaceSize - 1)
+        return ((2 * PC_VanP[0] - (self.spaceSize + 1)) / (self.spaceSize - 1),
+                (2 * PC_VanP[1] - (self.spaceSize + 1)) / (self.spaceSize - 1))
 
 
     def PC_point_to_CC(self, PC_NormVP):
@@ -225,15 +244,14 @@ class DiamondSpace:
         w2 = (self.sign(y) * y + self.sign(x) * x - 1) / x
         u3 = 1.0
 
-        return (v1 / self.Normalization * (m - 1) + self.width + 1) / 2, (w2 / self.Normalization * (m - 1) + self.height + 1) / 2
+        return ((v1 / self.Normalization * (m - 1) + self.width + 1) / 2,
+                (w2 / self.Normalization * (m - 1) + self.height + 1) / 2)
 
 
     def calc_Vanp(self):
         PC_VanP = self.find_maximum()
-        # print PC_VanP, "\n"
 
         PC_NormVP = self.normalize_PC_points(PC_VanP)
-        # print PC_NormVP, "\n"
 
         CC_VanP = self.PC_point_to_CC(PC_NormVP)
 
