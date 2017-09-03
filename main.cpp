@@ -17,7 +17,7 @@ using namespace cv;
 using namespace std;
 
 
-const string videoPath = "/home/kairat/Desktop/226.mp4";
+const string videoPath = "/home/progga/work/optimization/226.mp4";
 double scale = 0.5;
 
 Ptr<BackgroundSubtractorMOG2> backsub = createBackgroundSubtractorMOG2(100, 7, false);
@@ -49,7 +49,7 @@ int main( int argc, char** argv )
     int psize = 14;
     int SubPixelRadius = 2;
     float Normalization = 1;
-    
+
     cout<<"Space Size: "<<SpaceSize<<endl;
 
     uint** pSpace = new uint *[SpaceSize];
@@ -60,7 +60,7 @@ int main( int argc, char** argv )
         for(int j = 0; j <SpaceSize; j++)
             pSpace[i][j] = 0;
 
-    
+
     float w_c = (width * scale - 1)/2.f;
     float h_c = (height * scale - 1)/2.f;
     float norm = (max(w_c, h_c) - 14);
@@ -76,28 +76,28 @@ int main( int argc, char** argv )
             if (videoPath.find("rtsp://") != std::string::npos)
             {
                 cap.release();
-                cap = VideoCapture(videoPath); 
+                cap = VideoCapture(videoPath);
                 continue;
             }
             else
                 break;
-        } 
-        
-        Mat frame_rs; 
-        resize(frame, frame_rs, Size(0,0), scale, scale, INTER_LINEAR); 
+        }
+
+        Mat frame_rs;
+        resize(frame, frame_rs, Size(0,0), scale, scale, INTER_LINEAR);
         Mat mask, maskBigger;
-        backsub->apply(frame_rs, mask, 0.01);       
+        backsub->apply(frame_rs, mask, 0.01);
 
 
-        if (framenum > 30 && countNonZero(mask) > mask_thr) 
-        {           
+        if (framenum > 30 && countNonZero(mask) > mask_thr)
+        {
             // cout<<endl;
             morphologyEx(mask, mask, MORPH_OPEN, kernel_open);
             // morphologyEx(mask, mask, MORPH_CLOSE, kernel_close);
             morphologyEx(mask, mask, MORPH_DILATE, kernel_dilate);
 
             morphologyEx(mask, maskBigger, MORPH_DILATE, kernel_dilate);
-            
+
             Mat edges, edges2, gray , output, cdst;
             frame_rs.copyTo(output, maskBigger);
             cvtColor(output, gray, COLOR_BGR2GRAY);
@@ -105,14 +105,14 @@ int main( int argc, char** argv )
             Canny(gray, edges, 100, 200);
             edges.copyTo(edges2, mask);
 
-            cvtColor(edges2, cdst, CV_GRAY2BGR); 
+            cvtColor(edges2, cdst, CV_GRAY2BGR);
 
             vector<Vec2f> lines;
             list<line_param> mxlines;
 
             // detect lines
             HoughLines(edges2, lines, 1, CV_PI/180, houghTransfromThreshold, 0, 0, minAngle, maxAngle);
-         
+
             // draw lines
             for( size_t i = 0; i < lines.size(); i++ )
             {
@@ -125,7 +125,7 @@ int main( int argc, char** argv )
                 pt2.x = cvRound(x0 - 1000*(-b));
                 pt2.y = cvRound(y0 - 1000*(a));
                 line( cdst, pt1, pt2, Scalar(0,0,255), 1, CV_AA);
-                
+
                 // cout<<"line: "<<pt1.x<<", "<<pt1.y<<", "<<pt2.x<<", "<<pt2.y<<endl;
 
 
@@ -138,10 +138,10 @@ int main( int argc, char** argv )
                 aa=aa/t;
                 bb=bb/t;
                 float c=0-(pt1.y-h_c)*bb-(pt1.x-w_c)*aa;
-                
+
                 mxlines.push_back(line_param(aa,bb,c/norm, 1)); // t*1.f - weight
             }
-         
+
 
 
 
@@ -179,7 +179,7 @@ int main( int argc, char** argv )
 
             Point2f PC_VanP = find_maximum(pSpace, SpaceSize, SubPixelRadius, searchRange, margin, 2);
             // cout<<PC_VanP.y<<", "<<PC_VanP.x<<endl;
-            
+
             // draw founded maximum
             int pdd = 2;
             rectangle(accumBGR, Point(PC_VanP.x-pdd, PC_VanP.y-pdd), Point(PC_VanP.x+pdd, PC_VanP.y+pdd), Scalar(0,0,255));
@@ -194,14 +194,14 @@ int main( int argc, char** argv )
             imshow("Mask", output);
             imshow("Accumulator", accumBGR);
             imshow("detected lines", cdst);
-            
+
             int ch = waitKey(1);
-            if (ch == 27) 
+            if (ch == 27)
              break;
 
         }
         framenum += 1;
-        
+
         // if (framenum > 200)
         // {
         //  for(int i = 0; i <SpaceSize; i++)

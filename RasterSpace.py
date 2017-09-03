@@ -1,6 +1,7 @@
 """RasterSpace library written on python."""
 import cv2
 import numpy as np
+#clib library_with_useful_functions
 
 
 class DiamondSpace(object):

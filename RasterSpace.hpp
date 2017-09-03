@@ -5,6 +5,7 @@
 #include <cmath>
 #include <ctype.h>
 #include <stdio.h>
+#include <list>
 
 using namespace cv;
 using namespace std;
@@ -19,12 +20,12 @@ struct line_param
 };
 
 
-template <typename T> int sgn(T val) 
+template <typename T> int sgn(T val)
 {
     return (T(0) <= val) - (val < T(0));
 }
 
-template <typename T> int sign(T val) 
+template <typename T> int sign(T val)
 {
     return (T(0) <= val) - (val <= T(0));
 }
@@ -129,18 +130,18 @@ inline void lineH(int x0, int y0, int x1, int y1, uint ** space, int weight)
 {
     float slope = (float)(y1 - y0)/(x1 - x0);
 
-    float y_start = y0 + 0.5f; 
+    float y_start = y0 + 0.5f;
     float y_iter = y_start;
-    
+
     int step = (x0 < x1) ? 1 : -1;
     slope *= step;
-    
+
     for(int x = x0, c = 1; x != x1; x+=step, c++)
-    {   
-        space[x][int(y_iter)] += weight;        
+    {
+        space[x][int(y_iter)] += weight;
         y_iter = y_start + c*slope;
     }
-    
+
 }
 
 inline void lineV(int x0, int y0, int x1, int y1, uint ** space, int weight)
@@ -149,26 +150,26 @@ inline void lineV(int x0, int y0, int x1, int y1, uint ** space, int weight)
 
     float slope = (x1 - x0)/(float)(y1 - y0);
 
-    float x_start = x0 + 0.5f; 
+    float x_start = x0 + 0.5f;
     float x_iter = x_start;
     int step = (y0 < y1) ? 1 : -1;
     slope *= step;
 
     // printf("%f, %f, %f \n", slope, x_start, x_iter);
     for(int y = y0, c = 1; y != y1; y+=step, c++)
-    {   
+    {
         space[int(x_iter)][y] += weight;
         // printf("%d, %d \n", int(x_iter), y);
-        x_iter = x_start + c*slope;        
-    }     
+        x_iter = x_start + c*slope;
+    }
 }
 
 void rasterize_lines(list<line_param> lines, int * endpoints, uint** space, int cSpaceSize, int numLines)
-{ 
+{
     int k = 0;
     for (list<line_param>::iterator i = lines.begin(); i!=lines.end(); ++i)
     {
-        int * end = endpoints + k*8; 
+        int * end = endpoints + k*8;
         k++;
         int weight = i->w;
 
@@ -179,7 +180,7 @@ void rasterize_lines(list<line_param> lines, int * endpoints, uint** space, int 
                 lineV(end[j], end[j+1], end[j+2], end[j+3], space, weight);
             else
                 lineH(end[j], end[j+1], end[j+2], end[j+3], space, weight);
-        }        
+        }
         space[end[7]][end[6]] += weight;
     }
 }
@@ -192,7 +193,7 @@ void lines_end_points(list<line_param> lines, int * endpoints, float space_c, in
     for (list<line_param>::iterator i = lines.begin(); i!=lines.end(); ++i)
     {
         float a = i->a;
-        float b = i->b; 
+        float b = i->b;
         float c = i->c;
 
         // printf("%f, %f, %f \n", a, b, c);
@@ -200,7 +201,7 @@ void lines_end_points(list<line_param> lines, int * endpoints, float space_c, in
         float alpha = float(sgn(a*b));
         float beta = float(sgn(b*c));
         float gamma = float(sgn(a*c));
-        
+
         // printf("%f, %f, %f \n", alpha, beta, gamma);
 
         int * end = endpoints + j*8;
@@ -221,12 +222,12 @@ void lines_end_points(list<line_param> lines, int * endpoints, float space_c, in
         end[4] = round((b / (a + alpha*b) + 1) * space_c);
 
         end[7] = round((-a_x + 1) * space_c);
-        end[6] = round((-b_x + 1) * space_c); 
+        end[6] = round((-b_x + 1) * space_c);
     }
 }
 
 Point2f calc_CC_Vanp(uint** space, list<line_param> lines, int SpaceSize, float Normalization, int height, int width, int SubPixelRadius, int searchRange, int margin, int vp)
-{  
+{
 
     float space_c = (SpaceSize - 1.f)/2;
 
@@ -248,7 +249,7 @@ Point2f calc_CC_Vanp(uint** space, list<line_param> lines, int SpaceSize, float 
 
     //Rasterize
     rasterize_lines(lines, EndPoints, space, SpaceSize, numLines);
-    
+
     free(EndPoints);
 
 
