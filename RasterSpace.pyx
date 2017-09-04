@@ -1,6 +1,7 @@
 """RasterSpace library written on python."""
 import cv2
 import numpy as np
+from functools32 import lru_cache
 #clib library_with_useful_functions
 
 
@@ -60,11 +61,13 @@ class DiamondSpace(object):
         else:
             return visSpace.astype(np.uint8)
 
+    @lru_cache(maxsize=None)
     def sgn(self, val):
         if val >= 0:
             return +1
         return -1
 
+    @lru_cache(maxsize=None)
     def sign(self, val):
         if val > 0:
             return +1
@@ -73,10 +76,16 @@ class DiamondSpace(object):
         return -1
 
     def lines_end_points(self, lines, space_c):
-        center = int(round(space_c))
         endpoints = []
+        method = self.process_one_line(space_c)
+        endpoints = map(method, lines)
+        return endpoints
 
-        for line in lines:
+    def process_one_line(self, space_c_arg):
+        space_c = space_c_arg
+        center = int(round(space_c))
+        @lru_cache(maxsize=None)
+        def process_one_line_inner(line):
             a = line[0]
             b = line[1]
             c = line[2]
@@ -100,9 +109,8 @@ class DiamondSpace(object):
             end7 = int(round((-a_x + 1) * space_c))
             end6 = int(round((-b_x + 1) * space_c))
 
-            endpoints.append((end0, end1, end2, end3, end4, end5, end6, end7))
-
-        return endpoints
+            return (end0, end1, end2, end3, end4, end5, end6, end7)
+        return process_one_line_inner
 
     def lineV(self, x0, y0, x1, y1, weight):
         slope = (x1 - x0) / float(y1 - y0)
@@ -163,7 +171,6 @@ class DiamondSpace(object):
         space_c = (self.spaceSize - 1.0)/2.0
 
         EndPoints = self.lines_end_points(lines, space_c)
-
         self.rasterize_lines(lines, EndPoints)
 
     def find_maximum(self):
@@ -180,9 +187,8 @@ class DiamondSpace(object):
             y += 1
             x += 1
         else:
-            substracted2_sizerange = int(self.spaceSize/2 - self.searchRange/2)
-            addicted_sizerange = int(self.spaceSize/2 + self.searchRange/2)
-            sub_sizerange = self.spaceSize - self.searchRange
+            data = self.get_region_top(self.spaceSize, self.searchRange)
+            substracted2_sizerange, addicted_sizerange, sub_sizerange = data
             topRegion = self.pSpace[self.margin:self.searchRange,
                                     substracted2_sizerange:addicted_sizerange]
 
@@ -202,7 +208,6 @@ class DiamondSpace(object):
             x += substracted2_sizerange + 1
 
         oSize = 2 * self.SubPixelRadius + 1
-        O = np.zeros((oSize, oSize), dtype=np.float)
 
         ist = y - R
         iend = y + R + 1
@@ -210,10 +215,7 @@ class DiamondSpace(object):
         jst = x - R
         jend = x + R + 1
 
-        for i in range(ist, iend):
-            for j in range(jst, jend):
-                if i > 0 and i < self.spaceSize and j > 0 and j < self.spaceSize:
-                    O[i - ist, j - jst] = self.pSpace[i, j]
+        O = self.fill_array(oSize, ist, iend, jst, jend)
 
         sumSR = 0.0
         sumSC = 0.0
@@ -229,11 +231,29 @@ class DiamondSpace(object):
 
         return (x + sumSC/sumO, y + sumSR/sumO)
 
+    @lru_cache(maxsize=None)
+    def get_region_top(self, spaceSize, searchRange):
+        substracted2_sizerange = int(spaceSize/2 - searchRange/2)
+        addicted_sizerange = int(spaceSize/2 + searchRange/2)
+        sub_sizerange = spaceSize - searchRange
+        return (substracted2_sizerange, addicted_sizerange, sub_sizerange)
+
+    @lru_cache(maxsize=None)
+    def fill_array(self, size, ist, iend, jst, jend, *args, **kwds):
+        O = np.zeros((size, size), dtype=np.float)
+        for i in range(ist, iend):
+            for j in range(jst, jend):
+                if i > 0 and i < self.spaceSize and j > 0 and j < self.spaceSize:
+                    O[i - ist, j - jst] = self.pSpace[i, j]
+        return O
+
+
+    @lru_cache(maxsize=None)
     def normalize_PC_points(self, PC_VanP):
         return ((2 * PC_VanP[0] - (self.spaceSize + 1)) / (self.spaceSize - 1),
                 (2 * PC_VanP[1] - (self.spaceSize + 1)) / (self.spaceSize - 1))
 
-
+    @lru_cache(maxsize=None)
     def PC_point_to_CC(self, PC_NormVP):
         x = float(PC_NormVP[0])
         y = float(PC_NormVP[1])

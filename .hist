@@ -1,8 +1,19 @@
-average time: 0.125617071185
-average time: 0.131431652013
-average time: 0.130092451329
+Before my edition:
+
+Pure python:
+average time: 0.0733861325565
+average time: 0.0765178155385
+average time: 0.0726435261595
+
+After edition:
+
+Pure python:
+average time: 0.0702545151235
+average time: 0.071253051655
+average time: 0.0723006111592
 
 
-average time: 0.118906089375
-average time: 0.119947740788
-average time: 0.11981648431
+Cythonized:
+average time: 0.0612407312239
+average time: 0.0643373043389
+average time: 0.0627189900355
