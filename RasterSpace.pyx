@@ -27,39 +27,72 @@ class DiamondSpace(object):
         self.vp = vp
 
 
-    def getVisSpace(self, drawMax=True, pdd=2):
+    # def getVisSpace(self, drawMax=True, pdd=2):
+    #     maxVal = np.max(self.pSpace)
+
+    #     if maxVal < 1:
+    #         return np.zeros((self.spaceSize, self.spaceSize), dtype=np.uint8)
+
+    #     visSpace = self.pSpace / float(maxVal) * 255
+
+    #     if drawMax:
+    #         raw_x, raw_y = self.find_maximum()
+    #         x = int(round(raw_x))
+    #         y = int(round(raw_y))
+    #         visSpace = visSpace.astype(np.uint8)
+    #         visSpace = cv2.cvtColor(visSpace, cv2.COLOR_GRAY2BGR)
+
+    #         if self.vp == 2:
+    #             # draw top search region
+    #             substracted_data = self.spaceSize/2 - self.searchRange/2
+    #             addicted_data = self.spaceSize/2 + self.searchRange/2
+    #             cv2.rectangle(visSpace,
+    #                           (int(substracted_data), self.margin),
+    #                           (int(addicted_data), self.searchRange),
+    #                           (0, 255, 0))
+
+    #             # draw bottom search region
+    #             cv2.rectangle(visSpace, (int(substracted_data), self.spaceSize - self.searchRange),
+    #                                     (int(addicted_data), self.spaceSize - self.margin - 1), (0,255,0))
+
+    #         # draw maximum point
+    #         cv2.rectangle(visSpace, (x-pdd, y-pdd), (x+pdd, y+pdd), (0, 0, 255))
+    #         return visSpace
+    #     else:
+    #         return visSpace.astype(np.uint8)
+
+
+    def getVisSpace(self, drawMax = True, pdd = 2):
         maxVal = np.max(self.pSpace)
 
         if maxVal < 1:
-            return np.zeros((self.spaceSize, self.spaceSize), dtype=np.uint8)
+            return np.zeros((self.spaceSize, self.spaceSize), dtype = np.uint8)
 
         visSpace = self.pSpace / float(maxVal) * 255
 
         if drawMax:
-            raw_x, raw_y = self.find_maximum()
-            x = int(round(raw_x))
-            y = int(round(raw_y))
+            x, y = self.find_maximum()
+            x = int(round(x))
+            y = int(round(y))
             visSpace = visSpace.astype(np.uint8)
             visSpace = cv2.cvtColor(visSpace, cv2.COLOR_GRAY2BGR)
-
+            
             if self.vp == 2:
                 # draw top search region
-                substracted_data = self.spaceSize/2 - self.searchRange/2
-                addicted_data = self.spaceSize/2 + self.searchRange/2
-                cv2.rectangle(visSpace,
-                              (int(substracted_data), self.margin),
-                              (int(addicted_data), self.searchRange),
-                              (0, 255, 0))
+                cv2.rectangle(visSpace, (int(self.spaceSize/2 - self.searchRange/2), self.margin), 
+                                        (int(self.spaceSize/2 + self.searchRange/2), self.searchRange), (0,255,0))
 
-                # draw bottom search region
-                cv2.rectangle(visSpace, (int(substracted_data), self.spaceSize - self.searchRange),
-                                        (int(addicted_data), self.spaceSize - self.margin - 1), (0,255,0))
+                #draw bottom search region
+                cv2.rectangle(visSpace, (int(self.spaceSize/2 - self.searchRange/2), self.spaceSize - self.searchRange), 
+                                        (int(self.spaceSize/2 + self.searchRange/2), self.spaceSize - self.margin - 1), (0,255,0))
 
             # draw maximum point
-            cv2.rectangle(visSpace, (x-pdd, y-pdd), (x+pdd, y+pdd), (0, 0, 255))
+            cv2.rectangle(visSpace, (x-pdd, y-pdd), (x+pdd, y+pdd), (0,0,255))
             return visSpace
         else:
             return visSpace.astype(np.uint8)
+
+            
 
     @lru_cache(maxsize=None)
     def sgn(self, val):

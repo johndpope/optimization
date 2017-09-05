@@ -60,10 +60,10 @@ diamondSpace = DiamondSpace(SpaceSize, int(height * scale), int(width * scale), 
 print "Space Size: ", SpaceSize
 
 sum_time = 0
+sum_lines = 0
 
 ######### Run main loop
-while (cap.isOpened()):
-        st = time.time()
+while (cap.isOpened()):        
 
         ret, frame = cap.read()
 
@@ -90,6 +90,7 @@ while (cap.isOpened()):
                     continue
 
                 lines = np.reshape(lines,(lines.shape[0],2))
+                sum_lines += len(lines)
                 mxlines = []
 
                 for rho,theta in lines:
@@ -117,20 +118,21 @@ while (cap.isOpened()):
 
                     mxlines.append((aa, bb, c/norm, 1))
 
+
+                st = time.time()
                 diamondSpace.addLines(mxlines)
+                sum_time += time.time() - st
+
 
                 x, y = diamondSpace.calc_Vanp()
                 print x,y,"\n"
-
-
-                sum_time += time.time() - st
 
                 # cv2.imshow('frame', cv2.resize(frame, (0,0), fx=0.5, fy=0.5))
                 cv2.imshow('Output', output)
                 cv2.imshow('Canny', cdst)
                 cv2.imshow('VP2 accum', diamondSpace.getVisSpace())
 
-                k = cv2.waitKey(20)
+                k = cv2.waitKey(1)
                 if k == 27:
                     break
 
@@ -141,6 +143,7 @@ while (cap.isOpened()):
 
 # 0.0234
 print "average time:", sum_time/ (framenum - 30)
+print "average time per line:", sum_time/ sum_lines
 
 cap.release()
 cv2.destroyAllWindows()

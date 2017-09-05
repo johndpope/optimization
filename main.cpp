@@ -11,6 +11,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <time.h>
 
 // #include "MXLines.hpp"
 #include "RasterSpace.hpp"
@@ -77,6 +78,10 @@ void run(const string videoPath) {
     float h_c = (height * scale - 1)/2.f;
     float norm = (max(w_c, h_c) - 14);
 
+
+    int sum_lines = 0;
+    int sum_time = 0;
+    clock_t begin_time;
 
     while(true)
     {
@@ -155,14 +160,15 @@ void run(const string videoPath) {
             }
 
 
+            begin_time = clock();
+            addLines(pSpace, mxlines, SpaceSize);
+            sum_time += (clock() - begin_time);
+
+            Point2f cc_Vanp = calc_CC_Vanp(pSpace, SpaceSize, Normalization, edges.rows, edges.cols, SubPixelRadius, searchRange, margin, 2);
+            printf("CC_VanP: %f, %f\n", cc_Vanp.x, cc_Vanp.y);
 
 
-
-
-            // list<line_param> lines = get_mx_lines(edges2, psize, Normalization);
-            Point2f cc_Vanp = calc_CC_Vanp(pSpace, mxlines, SpaceSize, Normalization, edges.rows, edges.cols, SubPixelRadius, searchRange, margin, 2);
-            printf("%f, %f \n", cc_Vanp.x, cc_Vanp.y);
-
+            sum_lines += lines.size();
 
             for(int y = 0; y < frame_rs.rows; y += frame_rs.rows/15)
             {
@@ -224,6 +230,9 @@ void run(const string videoPath) {
         //  exit(0);
         // }
     }
+
+    printf("average time: %f\n", (float(sum_time) / (framenum - 30)) / CLOCKS_PER_SEC);
+    printf("average time per line: %f\n", (float(sum_time) / sum_lines) / CLOCKS_PER_SEC);
 
     for(int i = 0; i <SpaceSize; i++)
         delete [] pSpace[i];

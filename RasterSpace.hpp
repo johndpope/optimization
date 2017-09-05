@@ -226,7 +226,8 @@ void lines_end_points(list<line_param> lines, int * endpoints, float space_c, in
     }
 }
 
-Point2f calc_CC_Vanp(uint** space, list<line_param> lines, int SpaceSize, float Normalization, int height, int width, int SubPixelRadius, int searchRange, int margin, int vp)
+// Point2f calc_CC_Vanp(uint** space, list<line_param> lines, int SpaceSize, float Normalization, int height, int width, int SubPixelRadius, int searchRange, int margin, int vp)
+void addLines(uint** space, list<line_param> lines, int SpaceSize)
 {
 
     float space_c = (SpaceSize - 1.f)/2;
@@ -253,9 +254,23 @@ Point2f calc_CC_Vanp(uint** space, list<line_param> lines, int SpaceSize, float 
     free(EndPoints);
 
 
+    // Point2f PC_VanP = find_maximum(space, SpaceSize, SubPixelRadius, searchRange, margin, vp);
+    // // printf("PC_VanP: %f, %f\n", PC_VanP.x, PC_VanP.y);
+
+
+    // Point2f PC_NormVP = normalize_PC_points(PC_VanP, SpaceSize);
+    // // printf("PC_NormVP: %f, %f\n", PC_NormVP.x, PC_NormVP.y);
+
+    // Point2f CC_VanP = PC_point_to_CC(PC_NormVP, Normalization, height, width);
+    // printf("CC_VanP: %f, %f\n", CC_VanP.x, CC_VanP.y);
+
+    // return CC_VanP;
+}
+
+Point2f calc_CC_Vanp(uint** space, int SpaceSize, float Normalization, int height, int width, int SubPixelRadius, int searchRange, int margin, int vp)
+{
     Point2f PC_VanP = find_maximum(space, SpaceSize, SubPixelRadius, searchRange, margin, vp);
     // printf("PC_VanP: %f, %f\n", PC_VanP.x, PC_VanP.y);
-
 
     Point2f PC_NormVP = normalize_PC_points(PC_VanP, SpaceSize);
     // printf("PC_NormVP: %f, %f\n", PC_NormVP.x, PC_NormVP.y);
