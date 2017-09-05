@@ -1,6 +1,14 @@
 #ifndef RASTERSPACE_H
 #define RASTERSPACE_H
 
+#include "opencv2/video/tracking.hpp"
+#include "opencv2/imgproc.hpp"
+#include "opencv2/videoio.hpp"
+#include "opencv2/highgui.hpp"
+#include <opencv2/opencv.hpp>
+#include <opencv2/video/background_segm.hpp>
+
+
 #include <iostream>
 #include <cmath>
 #include <ctype.h>
@@ -241,7 +249,7 @@ void addLines(uint** space, list<line_param> lines, int SpaceSize)
     // cout<<endl<<endl<<"End points"<<endl;
     // for (int k = 0; k < lines.size(); ++k)
     // {
-    //     int * end = EndPoints + k*8;
+    //     int * end = EndPoints + k*f8;
     //     for(int j=0; j<8; ++j)
     //         cout<<end[j]<<", ";
 
