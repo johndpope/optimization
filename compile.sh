@@ -1,6 +1,2 @@
 #!/usr/bin/env bash
-cd build
-cython -a ../RasterSpace.pyx -o RasterSpace.c
-gcc -shared -pthread -fPIC -fwrapv -O2 -Wall -fno-strict-aliasing \
-      -I/usr/include/python2.7 -o RasterSpace.so RasterSpace.c
-cp RasterSpace.so ../
+c++ mainpy.cpp main.cpp -shared -pthread -fPIC -fwrapv -O2 -Wall -fno-strict-aliasing -I/usr/include/python2.7 -lopencv_core -lopencv_imgproc -lopencv_objdetect -lopencv_highgui -lopencv_videoio -lopencv_video -o mainpy.so
