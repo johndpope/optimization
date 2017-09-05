@@ -127,7 +127,7 @@ while (cap.isOpened()):
 
 
                 x, y = diamondSpace.calc_Vanp()
-                print x,y,"\n"
+                print x, y
 
                 # cv2.imshow('frame', cv2.resize(frame, (0,0), fx=0.5, fy=0.5))
                 cv2.imshow('Output', output)

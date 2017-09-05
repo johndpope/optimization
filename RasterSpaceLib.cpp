@@ -22,6 +22,8 @@ double get_float_attr(PyObject * pyobject, const char in_char[]){
         float z = (float) PyFloat_AsDouble(x);
         // cout << "TEST " << z << endl;
         return z;
+    }else{
+        return -1;
     }
 }
 
@@ -42,8 +44,8 @@ uint ** get_matrix_from_lists(PyObject * arr_object){
 
 list<line_param> get_lines(PyObject * lines_py){
     list<line_param> result_lines;
-    int len = (uint) PyList_Size(lines_py);
-    for(uint i = 0; i < len; i++){
+    int len = (int) PyList_Size(lines_py);
+    for(int i = 0; i < len; i++){
         PyObject * pyspace = PyList_GetItem(lines_py, i);
         float a = get_float_attr(pyspace, "a");
         float b = get_float_attr(pyspace, "b");
