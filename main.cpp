@@ -1,3 +1,4 @@
+#include "main.h"
 #include "opencv2/video/tracking.hpp"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/videoio.hpp"
@@ -9,6 +10,7 @@
 #include <cmath>
 #include <ctype.h>
 #include <stdio.h>
+#include <sys/stat.h>
 #include <time.h>
 
 // #include "MXLines.hpp"
@@ -17,9 +19,6 @@
 using namespace cv;
 using namespace std;
 
-
-// const string videoPath = "/home/progga/work/optimization/226.mp4";
-const string videoPath = "/home/kairat/Desktop/226.mp4";
 double scale = 0.5;
 
 Ptr<BackgroundSubtractorMOG2> backsub = createBackgroundSubtractorMOG2(100, 7, false);
@@ -28,26 +27,38 @@ Mat kernel_close = getStructuringElement(MORPH_ELLIPSE, Size(7, 7), Point(-1, -1
 Mat kernel_open = getStructuringElement(MORPH_ELLIPSE, Size(3, 3), Point(-1, -1));
 Mat kernel_dilate  = getStructuringElement(MORPH_ELLIPSE, Size(3, 3), Point(-1, -1));
 
-VideoCapture cap = VideoCapture(videoPath);
-int fps = int(cap.get(CAP_PROP_FPS));
-int width = int(cap.get(CAP_PROP_FRAME_WIDTH));
-int height = int(cap.get(CAP_PROP_FRAME_HEIGHT));
 int framenum = 0;
-
-float area = width * height * scale * scale;
-float mask_thr = area * 0.06;
-
-double scaleSpaceSize = 0.5;
-const int SpaceSize = int(height * scaleSpaceSize);
-const int searchRange = SpaceSize / 20;
-const int margin = 0;
-
-const int houghTransfromThreshold = 90;
-const float minAngle = CV_PI/3;
-const float maxAngle = CV_PI/1.8;
 
 int main( int argc, char** argv )
 {
+    if (! check_argv(argc, argv)){
+        return 1;
+    }
+    const string videoPath = string(argv[1]);
+    run(videoPath);
+
+    return 0;
+}
+
+void run(const string videoPath) {
+
+    VideoCapture cap = VideoCapture(videoPath);
+    int fps = int(cap.get(CAP_PROP_FPS));
+    int width = int(cap.get(CAP_PROP_FRAME_WIDTH));
+    int height = int(cap.get(CAP_PROP_FRAME_HEIGHT));
+    float area = width * height * scale * scale;
+    float mask_thr = area * 0.06;
+
+    double scaleSpaceSize = 0.5;
+    const int SpaceSize = int(height * scaleSpaceSize);
+    const int searchRange = SpaceSize / 20;
+    const int margin = 0;
+
+    const int houghTransfromThreshold = 90;
+    const float minAngle = CV_PI/3;
+    const float maxAngle = CV_PI/1.8;
+
+
     int psize = 14;
     int SubPixelRadius = 2;
     float Normalization = 1;
@@ -230,5 +241,20 @@ int main( int argc, char** argv )
     destroyAllWindows();
     cap.release();
 
-    return 0;
+}
+
+
+bool check_argv(int argc, char* argv[]){
+    if (argc < 2) {
+        std::cerr << "Usage: " << argv[0] << " FILEPATH.mp4" << endl;
+        return false;
+    }
+    const char* videoPath = argv[1];
+    struct stat sb;
+    stat(videoPath, &sb);
+    if (!S_ISREG(sb.st_mode)) {
+        std::cerr << "Error, file does not exists: " << videoPath << endl;
+        return false;
+    }
+    return true;
 }
