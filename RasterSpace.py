@@ -2,6 +2,7 @@
 
 import RasterSpaceLib
 import numpy as np
+import cv2
 
 class Line(object):
     def __init__(self, a, b, c, d):
@@ -32,18 +33,30 @@ class DiamondSpace(object):
         self.vp = vp
 
     def addLines(self, lines):
-        RasterSpaceLib.addLines(self.pSpace, lines, self.spaceSize)
+        self.pSpace = RasterSpaceLib.addLines(self.pSpace, lines, self.spaceSize)
 
     def calc_Vanp(self):
-        return RasterSpaceLib.calc_CC_Vanp(self.pSpace,
-                                           self.spaceSize,
-                                           self.Normalization,
-                                           self.height,
-                                           self.width,
-                                           self.SubPixelRadius,
-                                           self.searchRange,
-                                           self.margin,
-                                           self.vp)
+        result = RasterSpaceLib.calc_CC_Vanp(self.pSpace,
+                                             self.spaceSize,
+                                             self.Normalization,
+                                             self.height,
+                                             self.width,
+                                             self.SubPixelRadius,
+                                             self.searchRange,
+                                             self.margin,
+                                             self.vp)
+        x, y = result
+        return x, y
+
+    def find_maximum(self):
+        result = RasterSpaceLib.find_maximum(self.pSpace,
+                                             self.spaceSize,
+                                             self.SubPixelRadius,
+                                             self.searchRange,
+                                             self.margin,
+                                             self.vp)
+        x, y = result
+        return x, y
 
 
     def getVisSpace(self, drawMax = True, pdd = 2):
@@ -52,7 +65,7 @@ class DiamondSpace(object):
         if maxVal < 1:
             return np.zeros((self.spaceSize, self.spaceSize), dtype = np.uint8)
 
-        visSpace = self.pSpace / float(maxVal) * 255
+        visSpace = np.array(self.pSpace) / float(maxVal) * 255
 
         if drawMax:
             x, y = self.find_maximum()
