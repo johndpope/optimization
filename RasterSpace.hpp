@@ -38,7 +38,7 @@ template <typename T> int sign(T val)
     return (T(0) <= val) - (val <= T(0));
 }
 
-Point2f PC_point_to_CC(Point2f NormVP, float Normalization, int height, int width)
+Point2f * PC_point_to_CC(Point2f NormVP, float Normalization, int height, int width)
 {
     float x = NormVP.x;
     float y = NormVP.y;
@@ -54,7 +54,8 @@ Point2f PC_point_to_CC(Point2f NormVP, float Normalization, int height, int widt
     // float u3 = 1.0;
     // printf("v1: %f, w2: %f, u3: %f \n",v1,w2,u3);
 
-    return Point2f((v1/Normalization*(m-1)+width+1)/2, (w2/Normalization*(m-1)+height+1)/2);
+    return new Point2f((v1/Normalization*(m-1)+width+1)/2, (w2/Normalization*(m-1)+height+1)/2);
+    // result = &result_instance;
 }
 
 Point2f normalize_PC_points(Point2f VP, int spaceSize)
@@ -273,21 +274,33 @@ void addLines(uint** space, list<line_param> lines, int SpaceSize)
     // Point2f CC_VanP = PC_point_to_CC(PC_NormVP, Normalization, height, width);
     // printf("CC_VanP: %f, %f\n", CC_VanP.x, CC_VanP.y);
 
-    // return CC_VanP;
 }
 
 Point2f calc_CC_Vanp(uint** space, int SpaceSize, float Normalization, int height, int width, int SubPixelRadius, int searchRange, int margin, int vp)
 {
+    // for(int i=0; i<SpaceSize; i++){
+    //     for(int j=0; j<SpaceSize; j++){
+    //         cout << space[i][j] << " ";
+    //     }
+    //     cout << endl;
+    // }
+    // cout << SpaceSize << " ";
+    // cout << Normalization << " ";
+    // cout << height << " ";
+    // cout << width << " ";
+    // cout << SubPixelRadius << " ";
+    // cout << searchRange << " ";
+    // cout << margin << " ";
+    // cout << vp << "\n";
     Point2f PC_VanP = find_maximum(space, SpaceSize, SubPixelRadius, searchRange, margin, vp);
     // printf("PC_VanP: %f, %f\n", PC_VanP.x, PC_VanP.y);
 
     Point2f PC_NormVP = normalize_PC_points(PC_VanP, SpaceSize);
     // printf("PC_NormVP: %f, %f\n", PC_NormVP.x, PC_NormVP.y);
-
-    Point2f CC_VanP = PC_point_to_CC(PC_NormVP, Normalization, height, width);
+    Point2f * CC_VanP = PC_point_to_CC(PC_NormVP, Normalization, height, width);
     // printf("CC_VanP: %f, %f\n", CC_VanP.x, CC_VanP.y);
 
-    return CC_VanP;
+    return *CC_VanP;
 }
 
 #endif /*RASTERSPACE_H*/
