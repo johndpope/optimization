@@ -4,6 +4,7 @@ import numpy as np
 import time
 import sys
 from RasterSpace import DiamondSpace
+from RasterSpace import Line
 
 videoPath = "./226.mp4"
 
@@ -63,7 +64,7 @@ sum_time = 0
 sum_lines = 0
 
 ######### Run main loop
-while (cap.isOpened()):        
+while (cap.isOpened()):
 
         ret, frame = cap.read()
 
@@ -116,7 +117,8 @@ while (cap.isOpened()):
                     bb = bb / t
                     c = 0 -(y1 - h_c) * bb - (x1 - w_c) * aa
 
-                    mxlines.append((aa, bb, c/norm, 1))
+                    # mxlines.append((aa, bb, c/norm, 1))
+                    mxlines.append(Line(aa, bb, c/norm, 1))
 
 
                 st = time.time()
@@ -125,7 +127,7 @@ while (cap.isOpened()):
 
 
                 x, y = diamondSpace.calc_Vanp()
-                print x,y,"\n"
+                print x, y
 
                 # cv2.imshow('frame', cv2.resize(frame, (0,0), fx=0.5, fy=0.5))
                 cv2.imshow('Output', output)

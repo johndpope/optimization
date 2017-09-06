@@ -1,6 +1,14 @@
 #ifndef RASTERSPACE_H
 #define RASTERSPACE_H
 
+#include "opencv2/video/tracking.hpp"
+#include "opencv2/imgproc.hpp"
+#include "opencv2/videoio.hpp"
+#include "opencv2/highgui.hpp"
+#include <opencv2/opencv.hpp>
+#include <opencv2/video/background_segm.hpp>
+
+
 #include <iostream>
 #include <cmath>
 #include <ctype.h>
@@ -43,7 +51,7 @@ Point2f PC_point_to_CC(Point2f NormVP, float Normalization, int height, int widt
 
     float v1 = y/x;
     float w2 = (sign(y) * y + sign(x) * x - 1) / x;
-    float u3 = 1.0;
+    // float u3 = 1.0;
     // printf("v1: %f, w2: %f, u3: %f \n",v1,w2,u3);
 
     return Point2f((v1/Normalization*(m-1)+width+1)/2, (w2/Normalization*(m-1)+height+1)/2);
@@ -56,7 +64,8 @@ Point2f normalize_PC_points(Point2f VP, int spaceSize)
 
 Point2f find_maximum(uint ** space, int spaceSize, int R, int searchRange, int margin, int vp = 1)
 {
-    int xx = 0, yy = 0, mx = 0;
+    int xx = 0, yy = 0;
+    uint mx = 0;
 
     if (vp == 1)
     {
@@ -241,7 +250,7 @@ void addLines(uint** space, list<line_param> lines, int SpaceSize)
     // cout<<endl<<endl<<"End points"<<endl;
     // for (int k = 0; k < lines.size(); ++k)
     // {
-    //     int * end = EndPoints + k*8;
+    //     int * end = EndPoints + k*f8;
     //     for(int j=0; j<8; ++j)
     //         cout<<end[j]<<", ";
 
