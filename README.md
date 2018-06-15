@@ -9,6 +9,13 @@ There's a purely python version which will calculate the diamond space
     python  puremain.py
 
 
+![Diamond space](images/diamondspace.png)
+
+![Video](images/video.png)
+![lines](images/lines.png)
+
+
+
 
 # alternatively - use compile (I couldn't get this working on osx)
 Not to compile this code use:
